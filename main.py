@@ -72,4 +72,44 @@ def autocomplete():
     ])
     printer.pprint(list(result))
     
-autocomplete()
+
+def compount_queries():
+    result = question.aggregate([
+        {
+            '$search': {
+                'index': 'language_search',
+                'compound': {
+                    'must': [
+                        {
+                            'text': {
+                                'query': ['COMPUTER', 'CODING'],
+                                'path': 'category'
+                            }
+                        }
+                    ],
+                    'mustNot': [{
+                            'text': {
+                                'query': 'codes',
+                                'path': 'category'
+                            }
+                    }],
+                    'should': [
+                        {
+                            'text': {
+                                'query': 'application',
+                                'path': 'answer'
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+            {'$project': {
+                'question': 1,
+                'answer': 1,
+                'category': 1,
+                'score': {'$meta': 'searchScore'}
+            }
+        }
+    ])
+    printer.pprint(list(result))
