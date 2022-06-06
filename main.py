@@ -17,3 +17,18 @@ client = MongoClient(connection_string)
 db = client.db
 question = db.question
 
+# Search similar values to query in path
+def fuzzy_matching():
+    result = question.aggregate([
+        {
+            '$search': {
+                'index': 'language_search',
+                'text': {
+                    'query': 'computer',
+                    'path': 'category',
+                    'fuzzy': {}
+                }
+            }
+        }
+    ])
+    printer.pprint(list(result))
