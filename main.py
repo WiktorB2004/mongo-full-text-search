@@ -48,3 +48,28 @@ def synonyms_matching():
         }
     ])
     printer.pprint(list(result))
+    
+# Autocomplete questions which has similar phrase to query
+def autocomplete():
+    result = question.aggregate([
+        {
+            '$search':{
+                'index': 'language_search',
+                'autocomplete': {
+                    'query': 'computer programmer',
+                    'path': 'question',
+                    'tokenOrder': 'sequential',
+                    'fuzzy': {}
+                }
+            }
+        },
+        {
+            '$project': {
+                '_id': 0,
+                'question': 1
+            }
+        }
+    ])
+    printer.pprint(list(result))
+    
+autocomplete()
