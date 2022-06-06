@@ -17,7 +17,7 @@ client = MongoClient(connection_string)
 db = client.db
 question = db.question
 
-# Matches similar values to query in path
+# Matches similar values to query in path and print them
 def fuzzy_matching():
     result = question.aggregate([
         {
@@ -33,7 +33,7 @@ def fuzzy_matching():
     ])
     printer.pprint(list(result))
 
-# Matches using available in DB collection synonyms
+# Matches using available in DB collection synonyms and print them
 def synonyms_matching():
     result = question.aggregate([
         {
@@ -49,7 +49,7 @@ def synonyms_matching():
     ])
     printer.pprint(list(result))
     
-# Autocomplete questions which has similar phrase to query
+# Autocomplete questions which has similar phrase to query and print them
 def autocomplete():
     result = question.aggregate([
         {
@@ -72,7 +72,7 @@ def autocomplete():
     ])
     printer.pprint(list(result))
     
-
+# Matches using compound terms and print found elements
 def compount_queries():
     result = question.aggregate([
         {
@@ -113,3 +113,54 @@ def compount_queries():
         }
     ])
     printer.pprint(list(result))
+    
+    
+def relevance():
+    result = question.aggregate([
+        {
+            '$search': {
+                'index': 'language_search',
+                'compound': {
+                    'must': [
+                        {
+                            'text': {
+                                'query': 'geography',
+                                'path': 'category'
+                            }
+                        },
+                    ],
+                    'should': [
+                        {
+                            'text': {
+                                'query': 'Final Jeopardy',
+                                'path': 'round',
+                                'score': {'boost': {'value': 3.0}}
+                            }
+                        },
+                        {
+                            'text': {
+                                'query': 'Double Jeopardy',
+                                'path': 'round',
+                                'score': {'boost': {'value': 2.0}}
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            '$project': {
+                'question': 1,
+                'answer': 1,
+                'category': 1,
+                'round': 1,
+                'score': {'$meta': 'searchScore'}
+            }
+        }, 
+        {
+            '$limit': 10
+        }
+    ])
+    printer.pprint(list(result))
+    
+relevance()
